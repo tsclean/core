@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "lib": [ "es5", "es6", "es7",
+      "es2015", "es2016",
+      "es2017", "es2018",
+      "esnext" ],
+    "declaration": true,
+    "declarationMap": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "outDir": "./dist",
+    "module": "commonjs",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "target": "es2017",
+    "sourceMap": false,
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "rootDir": "src",
+    "baseUrl": "src",
+    "allowJs": true,
+    // "strict": true
+  },
+  "include": ["src"],
+  "exclude": ["../node_modules"]
+}

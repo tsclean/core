@@ -1,0 +1,1 @@
+export type CustomParamFactoryType<T = any, I = any, O = any> = (data: T, input: I) => O;
