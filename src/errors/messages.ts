@@ -36,11 +36,13 @@ export const UNKNOWN_DEPENDENCIES_MESSAGE = (
 
     const potentialSolutions = `\n
 Potential solutions:
-- If ${dependencyName} is a provider, is it part of the current ${moduleName}?
-- If ${dependencyName} is exported from a separate @Container, is that module imported within ${moduleName}?
-  @Container({
-    imports: [ /* the Module containing ${dependencyName} */ ]
-  })
+- If ${dependencyName} is a constant that you must include in the file src/infrastructure/driven-adapters/providers/index.ts  
+  export const adapters = [
+    {
+        provide: ${dependencyName},
+        useClass: ClassAdapter
+    },
+  ]
 `;
 
     if (isNil(index)) {
