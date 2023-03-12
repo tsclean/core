@@ -1,11 +1,11 @@
 import {
     RESPONSE_PASSTHROUGH_METADATA,
     ROUTE_ARGS_METADATA,
-} from '../helpers/constants';
-import {RouteParamTypes} from '../enums/route-paramtypes';
+} from '../helpers';
+import {RouteParamTypes} from '../enums';
 import {HandlerTransform} from '../contracts';
 import {Type} from '../contracts';
-import {isNil, isString} from '../utils/shared.utils';
+import {isNil, isString} from '../utils';
 
 export interface ResponseDecoratorOptions {
     passThrough: boolean;
