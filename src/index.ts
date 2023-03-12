@@ -12,3 +12,4 @@ export * from "./middleware"
 export * from "./server"
 export * from "./services"
 export * from "./utils"
+export * from './multer'

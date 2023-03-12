@@ -1,6 +1,6 @@
 import { multerExceptions, busboyExceptions } from './multer.constants';
-import {BadRequestException, HttpException} from "../../exceptions";
-import {PayloadTooLargeException} from "../../exceptions/payload-too-large.exception";
+import {BadRequestException, HttpException} from "../exceptions";
+import {PayloadTooLargeException} from "../exceptions/payload-too-large.exception";
 
 export function transformException(error: Error | undefined) {
   if (!error || error instanceof HttpException) {

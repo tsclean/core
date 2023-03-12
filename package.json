@@ -1,7 +1,7 @@
 {
   "name": "@tsclean/core",
   "description": "Plugin for API Rest Full development, based on Clean Architecture, IoC and Dependency Injection.",
-  "version": "1.9.3",
+  "version": "1.9.4",
   "main": "dist/index.js",
   "type": "commonjs",
   "types": "./dist/index.d.ts",
@@ -41,6 +41,7 @@
     "express": "^4.17.1",
     "fast-safe-stringify": "^2.0.8",
     "iterare": "^1.2.1",
+    "multer": "^1.4.5-lts.1",
     "object-hash": "^2.2.0",
     "random-number": "0.0.9",
     "reflect-metadata": "^0.1.13",

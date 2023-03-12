@@ -1,11 +1,10 @@
 import * as multer from 'multer';
 import {Observable} from 'rxjs';
-import {MULTER_MODULE_OPTIONS} from '../files.constants';
-import {MulterModuleOptions} from '../interfaces';
-import {MulterOptions} from '../interfaces/multer-options.interface';
-import {transformException} from '../multer/multer.utils';
+import {MulterModuleOptions, MulterOptions} from '../interfaces';
 import {Inject, mixin, Optional} from "../../decorators";
 import {CallHandlerInterface, ExecutionContextInterface, InterceptorInterface, Type} from "../../contracts";
+import {MULTER_MODULE_OPTIONS} from "../multer.constants";
+import {transformException} from "../multer.utils";
 
 
 type MulterInstance = any;

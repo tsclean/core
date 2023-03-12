@@ -1,10 +1,9 @@
-import { MULTER_MODULE_OPTIONS } from './files.constants';
 import {
   MulterModuleAsyncOptions,
   MulterModuleOptions,
   MulterOptionsFactory,
 } from './interfaces';
-import { MULTER_MODULE_ID } from './multer.constants';
+import {MULTER_MODULE_ID, MULTER_MODULE_OPTIONS} from './multer.constants';
 import {Container} from "../decorators";
 import {ProviderType} from "../types";
 import {DynamicModuleInterface} from "../contracts";

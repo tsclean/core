@@ -1,3 +1,3 @@
-export * from './interceptors';
+export * from './interceptors'
 export * from './interfaces';
 export * from './multer.module';
