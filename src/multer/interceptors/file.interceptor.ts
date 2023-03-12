@@ -9,50 +9,93 @@ import {
     MULTER_MODULE_OPTIONS,
     Type
 } from "../../contracts";
-import {Inject, mixin, Optional} from "../../decorators";
+import {Adapter, Inject, mixin, Optional} from "../../decorators";
 
 type MulterInstance = any;
 
-export function FileInterceptor(
-    fieldName: string,
-    localOptions?: MulterOptions,
-): Type<InterceptorInterface> {
-    class MixinInterceptor implements InterceptorInterface {
-        protected multer: MulterInstance;
+export class FileInterceptor implements InterceptorInterface {
 
-        constructor(
-            @Optional()
-            @Inject(MULTER_MODULE_OPTIONS)
-                options: MulterModuleOptions = {},
-        ) {
-            this.multer = (multer as any)({
-                ...options,
-                ...localOptions,
-            });
-        }
+    protected multer: MulterInstance;
+    protected fieldName: string
 
-        async intercept(
-            context: ExecutionContextInterface,
-            next: CallHandlerInterface,
-        ): Promise<Observable<any>> {
-            const ctx = context.getHttp();
+    constructor(
+        @Optional()
+        @Adapter(MULTER_MODULE_OPTIONS)
+            options: MulterModuleOptions = {},
+        fieldName = ''
 
-            await new Promise<void>((resolve, reject) =>
-                this.multer.single(fieldName)(
-                    ctx.getRequest(),
-                    ctx.getResponse(),
-                    (err: any) => {
-                        if (err) {
-                            const error = transformException(err);
-                            return reject(error);
-                        }
-                        resolve();
-                    },
-                ),
-            );
-            return next.handle();
-        }
+    ) {
+        this.multer = (multer as any)({
+            ...options,
+            // ...localOptions,
+        });
+
+        this.fieldName = fieldName;
     }
 
-    return mixin(MixinInterceptor);
+    async intercept(
+        context: ExecutionContextInterface,
+        next: CallHandlerInterface,
+    ): Promise<Observable<any>> {
+        const ctx = context.getHttp();
+
+        await new Promise<void>((resolve, reject) =>
+            this.multer.single(this.fieldName)(
+                ctx.getRequest(),
+                ctx.getResponse(),
+                (err: any) => {
+                    if (err) {
+                        const error = transformException(err);
+                        return reject(error);
+                    }
+                    resolve();
+                },
+            ),
+        );
+        return next.handle();
+    }
 }
+
+// export function FileInterceptor(
+//     fieldName: string,
+//     localOptions?: MulterOptions,
+// ): Type<InterceptorInterface> {
+//     class MixinInterceptor implements InterceptorInterface {
+//         protected multer: MulterInstance;
+//
+//         constructor(
+//             @Optional()
+//             @Inject(MULTER_MODULE_OPTIONS)
+//                 options: MulterModuleOptions = {},
+//         ) {
+//             this.multer = (multer as any)({
+//                 ...options,
+//                 ...localOptions,
+//             });
+//         }
+//
+//         async intercept(
+//             context: ExecutionContextInterface,
+//             next: CallHandlerInterface,
+//         ): Promise<Observable<any>> {
+//             const ctx = context.getHttp();
+//
+//             await new Promise<void>((resolve, reject) =>
+//                 this.multer.single(fieldName)(
+//                     ctx.getRequest(),
+//                     ctx.getResponse(),
+//                     (err: any) => {
+//                         if (err) {
+//                             const error = transformException(err);
+//                             return reject(error);
+//                         }
+//                         resolve();
+//                     },
+//                 ),
+//             );
+//             return next.handle();
+//         }
+//     }
+//
+//     return mixin(MixinInterceptor);
+// }

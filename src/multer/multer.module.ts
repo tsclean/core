@@ -14,7 +14,7 @@ import {FileInterceptor} from "./interceptors";
   providers: [
     {
       provide: MULTER_MODULE_OPTIONS,
-      useValue: FileInterceptor
+      useClass: FileInterceptor
     }
   ]
 })
