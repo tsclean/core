@@ -1,7 +1,7 @@
 {
   "name": "@tsclean/core",
   "description": "Plugin for API Rest Full development, based on Clean Architecture, IoC and Dependency Injection.",
-  "version": "1.10.2",
+  "version": "1.10.3",
   "main": "dist/index.js",
   "type": "commonjs",
   "types": "./dist/index.d.ts",
