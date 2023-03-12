@@ -1,4 +1,4 @@
-import * as multer from 'multer'
+import multer from 'multer';
 import {Observable} from 'rxjs';
 import {MulterModuleOptions, MulterOptions} from '../interfaces';
 import {transformException} from '../multer.utils';
@@ -25,10 +25,12 @@ export class FileInterceptor implements InterceptorInterface {
         fieldName = ''
 
     ) {
-        this.multer = (multer as any)({
-            ...options,
-            // ...localOptions,
-        });
+        // this.multer = (multer as any)({
+        //     ...options,
+        //     // ...localOptions,
+        // });
+
+        this.multer = multer({...options})
 
         this.fieldName = fieldName;
     }
