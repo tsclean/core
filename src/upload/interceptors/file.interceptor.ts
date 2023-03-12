@@ -30,8 +30,9 @@ export class FileInterceptor implements InterceptorInterface {
         //     // ...localOptions,
         // });
 
-        this.multer = multer({...options}) as any
+        console.log('link')
 
+        this.multer = multer({...options}) as any
         this.fieldName = fieldName;
     }
 
