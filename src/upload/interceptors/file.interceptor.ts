@@ -15,7 +15,6 @@ type MulterInstance = any;
 
 export class FileInterceptor implements InterceptorInterface {
 
-    // protected multer: MulterInstance;
     protected fieldName: string;
     protected options: MulterModuleOptions;
 
@@ -25,13 +24,6 @@ export class FileInterceptor implements InterceptorInterface {
             options: MulterModuleOptions = {},
         fieldName = ''
     ) {
-        // this.multer = (multer as any)({
-        //     ...options,
-        //     // ...localOptions,
-        // });
-
-        // this.multer = multer({...options}) as any
-
         this.options = options;
         this.fieldName = fieldName;
     }
