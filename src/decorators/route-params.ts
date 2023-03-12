@@ -146,5 +146,41 @@ export function Param(
     );
 }
 
+export function UploadedFile(): ParameterDecorator;
+
+export function UploadedFile(
+    ...handlers: (Type<HandlerTransform> | HandlerTransform)[]
+): ParameterDecorator;
+
+export function UploadedFile(
+    fileKey?: string,
+    ...handlers: (Type<HandlerTransform> | HandlerTransform)[]
+): ParameterDecorator;
+
+export function UploadedFile(
+    fileKey?: string | (Type<HandlerTransform> | HandlerTransform),
+    ...handlers: (Type<HandlerTransform> | HandlerTransform)[]
+): ParameterDecorator {
+    return createHandlerRouteParamDecorator(RouteParamTypes.FILE)(
+        fileKey,
+        ...handlers,
+    );
+}
+
+export function UploadedFiles(): ParameterDecorator;
+
+export function UploadedFiles(
+    ...handlers: (Type<HandlerTransform> | HandlerTransform)[]
+): ParameterDecorator;
+
+export function UploadedFiles(
+    ...handlers: (Type<HandlerTransform> | HandlerTransform)[]
+): ParameterDecorator {
+    return createHandlerRouteParamDecorator(RouteParamTypes.FILES)(
+        undefined,
+        ...handlers,
+    );
+}
+
 export const Req = Request;
 export const Res = Response;
