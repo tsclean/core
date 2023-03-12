@@ -5,6 +5,7 @@ export interface CallHandlerInterface<T = any> {
     handle(): Promise<T> | Observable<T>;
 }
 
+export const MULTER_MODULE_OPTIONS = 'MULTER_MODULE_OPTIONS';
 export interface InterceptorInterface<T = any, R = any> {
     intercept(
         context: ExecutionContextInterface,

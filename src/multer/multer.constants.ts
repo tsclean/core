@@ -12,8 +12,6 @@ export const multerExceptions = {
 
 export const MULTER_MODULE_ID = 'MULTER_MODULE_ID';
 
-export const MULTER_MODULE_OPTIONS = 'MULTER_MODULE_OPTIONS';
-
 export const busboyExceptions = {
   // from https://github.com/mscdex/busboy/blob/master/lib/types/multipart.js
   MULTIPART_BOUNDARY_NOT_FOUND: 'Multipart: Boundary not found',

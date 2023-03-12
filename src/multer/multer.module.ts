@@ -3,13 +3,21 @@ import {
   MulterModuleOptions,
   MulterOptionsFactory,
 } from './interfaces';
-import {MULTER_MODULE_ID, MULTER_MODULE_OPTIONS} from './multer.constants';
+import {MULTER_MODULE_ID} from './multer.constants';
 import {Container} from "../decorators";
 import {ProviderType} from "../types";
-import {DynamicModuleInterface} from "../contracts";
+import {DynamicModuleInterface, MULTER_MODULE_OPTIONS} from "../contracts";
 import {randomStringGenerator} from "../utils";
+import {AnyFilesInterceptor} from "./interceptors";
 
-@Container({})
+@Container({
+  providers: [
+    {
+      provide: MULTER_MODULE_OPTIONS,
+      useValue: AnyFilesInterceptor
+    }
+  ]
+})
 export class MulterModule {
   static register(options: MulterModuleOptions = {}): DynamicModuleInterface {
     return {
