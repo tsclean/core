@@ -8,13 +8,13 @@ import {Container} from "../decorators";
 import {ProviderType} from "../types";
 import {DynamicModuleInterface, MULTER_MODULE_OPTIONS} from "../contracts";
 import {randomStringGenerator} from "../utils";
-import {AnyFilesInterceptor} from "./interceptors";
+import {FileInterceptor} from "./interceptors";
 
 @Container({
   providers: [
     {
       provide: MULTER_MODULE_OPTIONS,
-      useValue: AnyFilesInterceptor
+      useValue: FileInterceptor
     }
   ]
 })
