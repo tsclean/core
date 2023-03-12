@@ -15,24 +15,24 @@ type MulterInstance = any;
 
 export class FileInterceptor implements InterceptorInterface {
 
-    protected multer: MulterInstance;
-    protected fieldName: string
+    // protected multer: MulterInstance;
+    protected fieldName: string;
+    protected options: MulterModuleOptions;
 
     constructor(
         @Optional()
         @Adapter(MULTER_MODULE_OPTIONS)
             options: MulterModuleOptions = {},
         fieldName = ''
-
     ) {
         // this.multer = (multer as any)({
         //     ...options,
         //     // ...localOptions,
         // });
 
-        console.log('link')
+        // this.multer = multer({...options}) as any
 
-        this.multer = multer({...options}) as any
+        this.options = options;
         this.fieldName = fieldName;
     }
 
@@ -43,7 +43,7 @@ export class FileInterceptor implements InterceptorInterface {
         const ctx = context.getHttp();
 
         await new Promise<void>((resolve, reject) =>
-            this.multer.single(this.fieldName)(
+            multer({...this.options}).single(this.fieldName)(
                 ctx.getRequest(),
                 ctx.getResponse(),
                 (err: any) => {
