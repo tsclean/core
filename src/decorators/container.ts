@@ -2,8 +2,8 @@ import { ModuleMetadata } from '../contracts/module-metadata.interface';
 import { validateModuleKeys } from '../utils';
 
 export function Container(metadata: ModuleMetadata): ClassDecorator {
-  const propsKeys = Object.keys(metadata);
-  validateModuleKeys(propsKeys);
+  // const propsKeys = Object.keys(metadata);
+  // validateModuleKeys(propsKeys);
 
   return (target: Function) => {
     for (const property in metadata) {
