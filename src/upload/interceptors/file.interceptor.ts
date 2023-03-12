@@ -13,84 +13,84 @@ import {Adapter, Inject, mixin, Optional} from "../../decorators";
 
 type MulterInstance = any;
 
-export class FileInterceptor implements InterceptorInterface {
-
-    protected fieldName: string;
-    protected options: MulterModuleOptions;
-
-    constructor(
-        @Optional()
-        @Adapter(MULTER_MODULE_OPTIONS)
-            options: MulterModuleOptions = {},
-        fieldName = ''
-    ) {
-        this.options = options;
-        this.fieldName = fieldName;
-    }
-
-    async intercept(
-        context: ExecutionContextInterface,
-        next: CallHandlerInterface,
-    ): Promise<Observable<any>> {
-        const ctx = context.getHttp();
-
-        await new Promise<void>((resolve, reject) =>
-            multer({...this.options}).single(this.fieldName)(
-                ctx.getRequest(),
-                ctx.getResponse(),
-                (err: any) => {
-                    if (err) {
-                        const error = transformException(err);
-                        return reject(error);
-                    }
-                    resolve();
-                },
-            ),
-        );
-        return next.handle();
-    }
-}
-
-// export function FileInterceptor(
-//     fieldName: string,
-//     localOptions?: MulterOptions,
-// ): Type<InterceptorInterface> {
-//     class MixinInterceptor implements InterceptorInterface {
-//         protected multer: MulterInstance;
+// export class FileInterceptor implements InterceptorInterface {
 //
-//         constructor(
-//             @Optional()
-//             @Inject(MULTER_MODULE_OPTIONS)
-//                 options: MulterModuleOptions = {},
-//         ) {
-//             this.multer = (multer as any)({
-//                 ...options,
-//                 ...localOptions,
-//             });
-//         }
+//     protected fieldName: string;
+//     protected options: MulterModuleOptions;
 //
-//         async intercept(
-//             context: ExecutionContextInterface,
-//             next: CallHandlerInterface,
-//         ): Promise<Observable<any>> {
-//             const ctx = context.getHttp();
-//
-//             await new Promise<void>((resolve, reject) =>
-//                 this.multer.single(fieldName)(
-//                     ctx.getRequest(),
-//                     ctx.getResponse(),
-//                     (err: any) => {
-//                         if (err) {
-//                             const error = transformException(err);
-//                             return reject(error);
-//                         }
-//                         resolve();
-//                     },
-//                 ),
-//             );
-//             return next.handle();
-//         }
+//     constructor(
+//         @Optional()
+//         @Adapter(MULTER_MODULE_OPTIONS)
+//             options: MulterModuleOptions = {},
+//         fieldName = ''
+//     ) {
+//         this.options = options;
+//         this.fieldName = fieldName;
 //     }
 //
-//     return mixin(MixinInterceptor);
+//     async intercept(
+//         context: ExecutionContextInterface,
+//         next: CallHandlerInterface,
+//     ): Promise<Observable<any>> {
+//         const ctx = context.getHttp();
+//
+//         await new Promise<void>((resolve, reject) =>
+//             multer({...this.options}).single(this.fieldName)(
+//                 ctx.getRequest(),
+//                 ctx.getResponse(),
+//                 (err: any) => {
+//                     if (err) {
+//                         const error = transformException(err);
+//                         return reject(error);
+//                     }
+//                     resolve();
+//                 },
+//             ),
+//         );
+//         return next.handle();
+//     }
 // }
+
+export function FileInterceptor(
+    fieldName: string,
+    localOptions?: MulterOptions,
+): Type<InterceptorInterface> {
+    class MixinInterceptor implements InterceptorInterface {
+        protected multer: MulterInstance;
+
+        constructor(
+            @Optional()
+            @Inject(MULTER_MODULE_OPTIONS)
+                options: MulterModuleOptions = {},
+        ) {
+            this.multer = (multer as any)({
+                ...options,
+                ...localOptions,
+            });
+        }
+
+        async intercept(
+            context: ExecutionContextInterface,
+            next: CallHandlerInterface,
+        ): Promise<Observable<any>> {
+            const ctx = context.getHttp();
+
+            await new Promise<void>((resolve, reject) =>
+                this.multer.single(fieldName)(
+                    ctx.getRequest(),
+                    ctx.getResponse(),
+                    (err: any) => {
+                        if (err) {
+                            const error = transformException(err);
+                            return reject(error);
+                        }
+                        resolve();
+                    },
+                ),
+            );
+            return next.handle();
+        }
+    }
+
+    return mixin(MixinInterceptor);
+}

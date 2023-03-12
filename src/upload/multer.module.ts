@@ -10,11 +10,13 @@ import {DynamicModuleInterface, MULTER_MODULE_OPTIONS} from "../contracts";
 import {randomStringGenerator} from "../utils";
 import {FileInterceptor} from "./interceptors";
 
+let options: MulterModuleOptions;
+
 @Container({
   providers: [
     {
       provide: MULTER_MODULE_OPTIONS,
-      useClass: FileInterceptor
+      useValue: options
     }
   ]
 })
