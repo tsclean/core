@@ -1,4 +1,4 @@
-import * as multer from 'multer';
+import * as multer from 'multer'
 import {Observable} from 'rxjs';
 import {MulterModuleOptions, MulterOptions} from '../interfaces';
 import {transformException} from '../multer.utils';
