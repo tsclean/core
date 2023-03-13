@@ -19,7 +19,7 @@ let options: MulterOptions;
 
 const MulterModuleOptionsProvider = {
     provide: MULTER_MODULE_OPTIONS,
-    useValue: options
+    useClass: FileInterceptor
 }
 
 const MulterModuleIdProvider = {
