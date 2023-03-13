@@ -13,7 +13,7 @@ import {Adapter, Inject, mixin, Optional} from "../../decorators";
 type MulterInstance = any;
 
 export class FileInterceptor implements InterceptorInterface {
-    // protected multer: MulterInstance;
+    protected multer: MulterInstance;
     protected options;
     protected fieldName: string;
     constructor(
@@ -22,11 +22,11 @@ export class FileInterceptor implements InterceptorInterface {
             options: MulterOptions = {},
         fieldName = ''
     ) {
-        // this.multer = (multer as any)({
-        //     ...options,
-        //     ...localOptions,
-        // });
-        this.options = options;
+        this.multer = (multer as any)({
+            ...options,
+            // ...localOptions,
+        });
+        // this.options = options;
         this.fieldName = fieldName;
     }
 
@@ -37,7 +37,7 @@ export class FileInterceptor implements InterceptorInterface {
         const ctx = context.getHttp();
 
         await new Promise<void>((resolve, reject) =>
-            multer({...this.options}).single(this.fieldName)(
+            this.multer.single(this.fieldName)(
                 ctx.getRequest(),
                 ctx.getResponse(),
                 (err: any) => {
