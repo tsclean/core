@@ -1,24 +1,28 @@
-import {ExternalExceptionFilterContext} from '../core/exceptions/external-exception-filter-context';
-import {FORBIDDEN_MESSAGE} from '../access/constants';
-import {AccessResourceConsumer} from '../access/access-resource-consumer';
-import {AccessResourceContextCreator} from '../access/access-resource-context-creator';
-import {STATIC_CONTEXT} from '../core/injector/constants';
-import {ContainerIoC} from '../core/injector';
-import {ContextId} from '../core/injector';
-import {ModulesContainer} from '../core/injector';
-import {InterceptorsConsumer} from '../interceptors/interceptors-consumer';
-import {InterceptorsContextCreator} from '../interceptors/interceptors-context-creator';
-import {HandlersConsumer} from '../core/handler/handlers-consumer';
-import {HandlersContextCreator} from '../core/handler/handlers-context-creator';
+import {
+    ExternalExceptionFilterContext,
+    STATIC_CONTEXT,
+    ContainerIoC,
+    ContextId,
+    ModulesContainer,
+    HandlersConsumer,
+    HandlersContextCreator
+} from '../core';
+import {
+    FORBIDDEN_MESSAGE,
+    AccessResourceConsumer,
+    AccessResourceContextCreator
+} from '../access';
+import {InterceptorsConsumer, InterceptorsContextCreator} from '../interceptors';
 import {ContextUtils, ParamProperties} from './context-utils';
 import {ExternalErrorProxy} from './external-proxy';
 import {HandlerMetadataStorage} from './handler-metadata-storage';
 import {ExternalHandlerMetadataInterface, HandlerTransform} from "../contracts";
 import {CUSTOM_ROUTE_AGRS_METADATA} from "./constants";
-import {isEmpty} from "../utils/shared.utils";
+import {isEmpty} from "../utils";
 import {ParamData} from "../decorators";
 import {ForbiddenException} from "../exceptions";
 import {ContextType, ControllerType, ParamsMetadataType} from "../types";
+import {isObservable, lastValueFrom} from "rxjs";
 
 export interface ParamsFactory {
     exchangeKeyForValue(type: number, data: ParamData, args: any): any;
@@ -157,10 +161,10 @@ export class ExternalContextCreator {
         if (cacheMetadata) return cacheMetadata;
 
         const metadata = this.contextUtils.reflectCallbackMetadata<T>(
-                instance,
-                methodName,
-                metadataKey || '',
-            ) || {};
+            instance,
+            methodName,
+            metadataKey || '',
+        ) || {};
         const keys = Object.keys(metadata);
         const argsLength = this.contextUtils.getArgumentsLength(keys, metadata);
         const paramTypes = this.contextUtils.reflectCallbackParamTypes(instance, methodName);
@@ -272,6 +276,9 @@ export class ExternalContextCreator {
     }
 
     public async transformToResult(resultOrDeferred: any) {
+        if(isObservable(resultOrDeferred)) {
+            return lastValueFrom(resultOrDeferred);
+        }
         return resultOrDeferred;
     }
 

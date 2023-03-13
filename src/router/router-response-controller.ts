@@ -1,5 +1,6 @@
 import {HttpServer} from "../contracts";
 import {HttpStatus, RequestMethod} from "../enums";
+import {isObservable, lastValueFrom} from "rxjs";
 
 export interface CustomHeader {
   name: string;
@@ -48,6 +49,9 @@ export class RouterResponseController {
   }
 
   public async transformToResult(resultOrDeferred: any) {
+    if (isObservable(resultOrDeferred)) {
+      return lastValueFrom(resultOrDeferred);
+    }
     return resultOrDeferred;
   }
 
