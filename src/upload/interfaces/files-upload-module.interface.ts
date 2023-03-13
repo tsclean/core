@@ -1,10 +1,10 @@
 import { MulterOptions } from './multer-options.interface';
 import {ModuleMetadata, Type} from "../../contracts";
 
-export type MulterModuleOptions = MulterOptions;
+// export type MulterModuleOptions = MulterOptions;
 
 export interface MulterOptionsFactory {
-  createMulterOptions(): Promise<MulterModuleOptions> | MulterModuleOptions;
+  createMulterOptions(): Promise<MulterOptions> | MulterOptions;
 }
 
 export interface MulterModuleAsyncOptions
@@ -13,6 +13,6 @@ export interface MulterModuleAsyncOptions
   useClass?: Type<MulterOptionsFactory>;
   useFactory?: (
     ...args: any[]
-  ) => Promise<MulterModuleOptions> | MulterModuleOptions;
+  ) => Promise<MulterOptions> | MulterOptions;
   inject?: any[];
 }

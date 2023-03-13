@@ -1,6 +1,6 @@
 import {
-    MulterModuleAsyncOptions,
-    MulterModuleOptions,
+    MULTER_MODULE_OPTIONS,
+    MulterModuleAsyncOptions, MulterOptions,
     MulterOptionsFactory,
 } from './interfaces';
 import {MULTER_MODULE_ID} from './multer.constants';
@@ -10,13 +10,12 @@ import {
     DynamicModuleInterface,
     ExistingProvider,
     FactoryProvider,
-    MULTER_MODULE_OPTIONS,
     ValueProvider
 } from "../contracts";
 import {randomStringGenerator} from "../utils";
 import {FileInterceptor} from "./interceptors";
 
-let options: MulterModuleOptions;
+let options: MulterOptions;
 
 const MulterModuleOptionsProvider = {
     provide: MULTER_MODULE_OPTIONS,

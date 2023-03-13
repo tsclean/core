@@ -1,6 +1,4 @@
-/**
- * @see https://github.com/expressjs/multer
- */
+export const MULTER_MODULE_OPTIONS = 'MULTER_MODULE_OPTIONS'
 export interface MulterOptions {
   dest?: string;
   /** The storage engine to use for uploaded files. */

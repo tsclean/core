@@ -1,12 +1,11 @@
 import * as multer from 'multer';
 import {Observable} from 'rxjs';
-import {MulterModuleOptions, MulterOptions} from '../interfaces';
+import {MULTER_MODULE_OPTIONS, MulterOptions} from '../interfaces';
 import {transformException} from '../multer.utils';
 import {
     CallHandlerInterface,
     ExecutionContextInterface,
     InterceptorInterface,
-    MULTER_MODULE_OPTIONS,
     Type
 } from "../../contracts";
 import {Inject, mixin, Optional} from "../../decorators";
@@ -24,7 +23,7 @@ export function FilesInterceptor(
         constructor(
             @Optional()
             @Inject(MULTER_MODULE_OPTIONS)
-                options: MulterModuleOptions = {},
+                options: MulterOptions = {},
         ) {
             this.multer = (multer as any)({
                 ...options,
