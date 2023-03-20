@@ -1,12 +1,16 @@
-import {HttpsOptions} from './https-options.interface';
-import {CorsOptionsDelegate, CorsOptions} from "./cors-options";
-import {ApplicationContextOptionsInterface} from './application-context-options';
+import { HttpsOptions } from "./https-options.interface";
+import { CorsOptionsDelegate, CorsOptions } from "./cors-options";
+import { ApplicationContextOptionsInterface } from "./application-context-options";
 
-export interface ApplicationOptionsInterface extends ApplicationContextOptionsInterface {
+export interface ApplicationOptionsInterface
+  extends ApplicationContextOptionsInterface {
+  cors?: boolean | CorsOptions | CorsOptionsDelegate<any>;
 
-    cors?: boolean | CorsOptions | CorsOptionsDelegate<any>;
+  bodyParser?: boolean;
 
-    bodyParser?: boolean;
+  httpsOptions?: HttpsOptions;
 
-    httpsOptions?: HttpsOptions;
+  rawBody?: boolean;
+
+  forceCloseConnections?: boolean;
 }

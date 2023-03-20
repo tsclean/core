@@ -46,6 +46,7 @@
     "random-number": "0.0.9",
     "reflect-metadata": "^0.1.13",
     "rxjs": "7.8.0",
+    "stream": "^0.0.2",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
