@@ -1,23 +1,30 @@
-import { InstanceWrapper } from '../core';
-import {ExcludeRouteMetadataInterface, HandlerTransform} from '../contracts';
+import { InstanceWrapper } from "../core";
+import { ExcludeRouteMetadataInterface, HandlerTransform } from "../contracts";
 import {
   AccessResourceInterface,
   ExceptionFilterInterface,
   GlobalPrefixOptionsInterface,
-  InterceptorInterface,
+  InterceptorInterface
 } from "../contracts";
+import { VersioningOptions } from "contracts/version-options";
 
 export class ApplicationConfig {
-  private globalPrefix = '';
-  private globalPrefixOptions: GlobalPrefixOptionsInterface<ExcludeRouteMetadataInterface> = {};
+  private globalPrefix = "";
+  private globalPrefixOptions: GlobalPrefixOptionsInterface<ExcludeRouteMetadataInterface> =
+    {};
   private globalHandlers: Array<HandlerTransform> = [];
   private globalFilters: Array<ExceptionFilterInterface> = [];
   private globalInterceptors: Array<InterceptorInterface> = [];
   private globalAccessResource: Array<AccessResourceInterface> = [];
-  private readonly globalRequestHandlers: InstanceWrapper<HandlerTransform>[] = [];
-  private readonly globalRequestFilters: InstanceWrapper<ExceptionFilterInterface>[] = [];
-  private readonly globalRequestInterceptors: InstanceWrapper<InterceptorInterface>[] = [];
-  private readonly globalRequestAccessResource: InstanceWrapper<AccessResourceInterface>[] = [];
+  private versioningOptions: VersioningOptions;
+  private readonly globalRequestHandlers: InstanceWrapper<HandlerTransform>[] =
+    [];
+  private readonly globalRequestFilters: InstanceWrapper<ExceptionFilterInterface>[] =
+    [];
+  private readonly globalRequestInterceptors: InstanceWrapper<InterceptorInterface>[] =
+    [];
+  private readonly globalRequestAccessResource: InstanceWrapper<AccessResourceInterface>[] =
+    [];
 
   constructor() {}
 
@@ -29,7 +36,9 @@ export class ApplicationConfig {
     return this.globalPrefix;
   }
 
-  public setGlobalPrefixOptions(options: GlobalPrefixOptionsInterface<ExcludeRouteMetadataInterface>) {
+  public setGlobalPrefixOptions(
+    options: GlobalPrefixOptionsInterface<ExcludeRouteMetadataInterface>
+  ) {
     this.globalPrefixOptions = options;
   }
 
@@ -85,7 +94,9 @@ export class ApplicationConfig {
     this.globalAccessResource = this.globalAccessResource.concat(guards);
   }
 
-  public addGlobalRequestInterceptor(wrapper: InstanceWrapper<InterceptorInterface>) {
+  public addGlobalRequestInterceptor(
+    wrapper: InstanceWrapper<InterceptorInterface>
+  ) {
     this.globalRequestInterceptors.push(wrapper);
   }
 
@@ -101,7 +112,9 @@ export class ApplicationConfig {
     return this.globalRequestHandlers;
   }
 
-  public addGlobalRequestFilter(wrapper: InstanceWrapper<ExceptionFilterInterface>) {
+  public addGlobalRequestFilter(
+    wrapper: InstanceWrapper<ExceptionFilterInterface>
+  ) {
     this.globalRequestFilters.push(wrapper);
   }
 
@@ -109,11 +122,26 @@ export class ApplicationConfig {
     return this.globalRequestFilters;
   }
 
-  public addGlobalRequestGuard(wrapper: InstanceWrapper<AccessResourceInterface>) {
+  public addGlobalRequestGuard(
+    wrapper: InstanceWrapper<AccessResourceInterface>
+  ) {
     this.globalRequestAccessResource.push(wrapper);
   }
 
   public getGlobalRequestAccessResource(): InstanceWrapper<AccessResourceInterface>[] {
     return this.globalRequestAccessResource;
+  }
+
+  public enableVersioning(options: VersioningOptions): void {
+    if (Array.isArray(options.defaultVersion)) {
+      // Drop duplicated versions
+      options.defaultVersion = Array.from(new Set(options.defaultVersion));
+    }
+
+    this.versioningOptions = options;
+  }
+
+  public getVersioning(): VersioningOptions | undefined {
+    return this.versioningOptions;
   }
 }
