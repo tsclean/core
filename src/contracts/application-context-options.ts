@@ -1,12 +1,20 @@
-import {LoggerService, LogLevel} from '../services';
+import { LoggerService, LogLevel } from '../services'
 
-export interface ApplicationContextOptionsInterface {
+export interface GetOrResolveOptions {
+  strict?: boolean
+  each?: boolean
+}
 
-    logger?: LoggerService | LogLevel[] | false;
+export class ApplicationContextOptionsInterface {
+  logger?: LoggerService | LogLevel[] | false
 
-    abortOnError?: boolean | undefined;
+  abortOnError?: boolean | undefined
 
-    bufferLogs?: boolean;
+  bufferLogs?: boolean
 
-    autoFlushLogs?: boolean;
+  autoFlushLogs?: boolean
+
+  preview?: boolean
+
+  snapshot?: boolean
 }

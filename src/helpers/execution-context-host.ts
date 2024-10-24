@@ -1,5 +1,5 @@
 import {ContextType} from "../types";
-import {ExecutionContextInterface, Type, HttpArgumentsHostInterface} from "../contracts";
+import {ExecutionContextInterface, Type, HttpArgumentsHostInterface, WsArgumentsHost} from "../contracts";
 
 export class ExecutionContextHost implements ExecutionContextInterface {
   private contextType = 'http';
@@ -39,6 +39,14 @@ export class ExecutionContextHost implements ExecutionContextInterface {
       getRequest: () => this.getArgByIndex(0),
       getResponse: () => this.getArgByIndex(1),
       getNext: () => this.getArgByIndex(2),
+    });
+  }
+
+  switchToWs(): WsArgumentsHost {
+    return Object.assign(this, {
+      getClient: () => this.getArgByIndex(0),
+      getData: () => this.getArgByIndex(1),
+      getPattern: () => this.getArgByIndex(this.getArgs().length - 1),
     });
   }
 }

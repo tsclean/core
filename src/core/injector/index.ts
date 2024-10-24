@@ -13,3 +13,4 @@ export * from "./module"
 export * from "./module-ref"
 export * from "./module-token-factory"
 export * from "./modules-container"
+export * from './abstract-instance-resolver'

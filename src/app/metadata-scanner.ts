@@ -1,33 +1,112 @@
-import { iterate } from 'iterare';
-import {isConstructor, isFunction, isNil} from "../utils";
-import {InjectableType} from "../types";
+import { isConstructor, isFunction, isNil } from '../utils'
+import { InjectableType } from '../types'
 
 export class MetadataScanner {
+  private readonly cachedScannedPrototypes: Map<object, string[]> = new Map()
 
-  public scanFromPrototype<T extends InjectableType, R = any>(
-    instance: T, prototype: object, callback: (name: string) => R): R[] {
+  /**
+   * @deprecated
+   * @see {@link getAllMethodNames}
+   * @see getAllMethodNames
+   */
+  public scanFromPrototype<T extends InjectableType, R = any> (
+    instance: T,
+    prototype: object,
+    callback: (name: string) => R
+  ): R[] {
+    if (!prototype) {
+      return []
+    }
 
-    const methodNames = new Set(this.getAllFilteredMethodNames(prototype));
-    return iterate(methodNames)
-      .map(callback)
-      .filter(metadata => !isNil(metadata))
-      .toArray();
-  }
+    const visitedNames = new Map<string, boolean>()
+    const result: R[] = []
 
-  *getAllFilteredMethodNames(prototype: object): IterableIterator<string> {
-    const isMethod = (prop: string) => {
-      const descriptor = Object.getOwnPropertyDescriptor(prototype, prop);
-      if (descriptor.set || descriptor.get) return false;
-
-      return !isConstructor(prop) && isFunction(prototype[prop]);
-    };
     do {
-      yield* iterate(Object.getOwnPropertyNames(prototype))
-        .filter(isMethod)
-        .toArray();
+      for (const property of Object.getOwnPropertyNames(prototype)) {
+        if (visitedNames.has(property)) {
+          continue
+        }
+
+        visitedNames.set(property, true)
+
+        const descriptor = Object.getOwnPropertyDescriptor(prototype, property)
+
+        if (
+          descriptor.set ||
+          descriptor.get ||
+          isConstructor(property) ||
+          !isFunction(prototype[property])
+        ) {
+          continue
+        }
+
+        const value = callback(property)
+
+        if (isNil(value)) {
+          continue
+        }
+
+        result.push(value)
+      }
     } while (
       (prototype = Reflect.getPrototypeOf(prototype)) &&
       prototype !== Object.prototype
-    );
+    )
+
+    return result
+  }
+
+  /**
+   * @deprecated
+   * @see {@link getAllMethodNames}
+   * @see getAllMethodNames
+   */
+  public *getAllFilteredMethodNames (
+    prototype: object
+  ): IterableIterator<string> {
+    yield* this.getAllMethodNames(prototype)
+  }
+
+  public getAllMethodNames (prototype: object | null): string[] {
+    if (!prototype) {
+      return []
+    }
+
+    if (this.cachedScannedPrototypes.has(prototype)) {
+      return this.cachedScannedPrototypes.get(prototype)
+    }
+
+    const visitedNames = new Map<string, boolean>()
+    const result: string[] = []
+
+    this.cachedScannedPrototypes.set(prototype, result)
+
+    do {
+      for (const property of Object.getOwnPropertyNames(prototype)) {
+        if (visitedNames.has(property)) {
+          continue
+        }
+
+        visitedNames.set(property, true)
+
+        const descriptor = Object.getOwnPropertyDescriptor(prototype, property)
+
+        if (
+          descriptor.set ||
+          descriptor.get ||
+          isConstructor(property) ||
+          !isFunction(prototype[property])
+        ) {
+          continue
+        }
+
+        result.push(property)
+      }
+    } while (
+      (prototype = Reflect.getPrototypeOf(prototype)) &&
+      prototype !== Object.prototype
+    )
+
+    return result
   }
 }

@@ -6,6 +6,7 @@ import {InterceptorInterface} from './interceptor';
 import {GlobalPrefixOptionsInterface} from './global-prefix-options';
 import {ApplicationContextInterface} from './application-context';
 import {CorsOptionsDelegate, CorsOptions} from "./cors-options";
+import { WebSocketAdapter } from './web-socket-adapter';
 
 
 export interface ApplicationInterface extends ApplicationContextInterface {
@@ -33,6 +34,8 @@ export interface ApplicationInterface extends ApplicationContextInterface {
     useGlobalInterceptors(...interceptors: InterceptorInterface[]): this;
 
     useGlobalAccessResources(...guards: AccessResourceInterface[]): this;
+
+    useWebSocketAdapter(adapter: WebSocketAdapter): this;
 
     close(): Promise<void>;
 }

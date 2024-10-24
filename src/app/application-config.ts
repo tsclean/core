@@ -1,5 +1,5 @@
 import { InstanceWrapper } from '../core';
-import {ExcludeRouteMetadataInterface, HandlerTransform} from '../contracts';
+import {ExcludeRouteMetadataInterface, HandlerTransform, WebSocketAdapter} from '../contracts';
 import {
   AccessResourceInterface,
   ExceptionFilterInterface,
@@ -19,7 +19,7 @@ export class ApplicationConfig {
   private readonly globalRequestInterceptors: InstanceWrapper<InterceptorInterface>[] = [];
   private readonly globalRequestAccessResource: InstanceWrapper<AccessResourceInterface>[] = [];
 
-  constructor() {}
+  constructor(private ioAdapter: WebSocketAdapter | null = null) {}
 
   public setGlobalPrefix(prefix: string) {
     this.globalPrefix = prefix;
@@ -35,6 +35,14 @@ export class ApplicationConfig {
 
   public getGlobalPrefixOptions(): GlobalPrefixOptionsInterface<ExcludeRouteMetadataInterface> {
     return this.globalPrefixOptions;
+  }
+
+  public setIoAdapter(ioAdapter: WebSocketAdapter) {
+    this.ioAdapter = ioAdapter;
+  }
+
+  public getIoAdapter(): WebSocketAdapter {
+    return this.ioAdapter;
   }
 
   public addGlobalHandler(handler: HandlerTransform<any>) {

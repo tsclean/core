@@ -1,5 +1,5 @@
 import {STATIC_CONTEXT} from '../core/injector/constants';
-import {ContextId} from '../core/injector';
+import {ContextId, InstanceWrapper} from '../core/injector';
 import {ControllerType} from "../types";
 
 export abstract class ContextCreator {
@@ -33,4 +33,16 @@ export abstract class ContextCreator {
     public reflectMethodMetadata<T>(callback: (...args: unknown[]) => unknown, metadataKey: string): T {
         return Reflect.getMetadata(metadataKey, callback);
     }
+
+    protected getContextId(
+        contextId: ContextId,
+        instanceWrapper: InstanceWrapper,
+      ): ContextId {
+        return contextId.getParent
+          ? contextId.getParent({
+              token: instanceWrapper.token,
+              isTreeDurable: instanceWrapper.isDependencyTreeDurable(),
+            })
+          : contextId;
+      }
 }

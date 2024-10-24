@@ -17,8 +17,14 @@ import {
 } from "../contracts";
 import { ControllerType } from "../types";
 import { BadRequestException, NotFoundException } from "../exceptions";
+import { GraphInspector } from "../inspector";
+import { Logger } from "../services";
 
 export class RoutesResolver implements ResolverInterface {
+  private readonly logger = new Logger(RoutesResolver.name, {
+    timestamp: true,
+  });
+
   private readonly routerProxy = new RouterProxy();
   private readonly routePathFactory: RoutePathFactory;
   private readonly routerExceptionsFilter: RouterExceptionFilters;
@@ -27,7 +33,8 @@ export class RoutesResolver implements ResolverInterface {
   constructor(
     private readonly container: ContainerIoC,
     private readonly applicationConfig: ApplicationConfig,
-    private readonly injector: Injector
+    private readonly injector: Injector,
+    graphInspector: GraphInspector,
   ) {
     const httpAdapterRef = container.getHttpAdapterRef();
     this.routerExceptionsFilter = new RouterExceptionFilters(
@@ -41,11 +48,12 @@ export class RoutesResolver implements ResolverInterface {
     this.routerExplorer = new RouterExplorer(
       metadataScanner,
       this.container,
+      graphInspector,
       this.injector,
       this.routerProxy,
       this.routerExceptionsFilter,
       this.applicationConfig,
-      this.routePathFactory
+      this.routePathFactory,
     );
   }
 

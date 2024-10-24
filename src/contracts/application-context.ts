@@ -1,23 +1,65 @@
-import {Type} from './type';
-import {AbstractInterface} from './abstract';
-import {LoggerService, LogLevel} from '../services';
-import {DynamicModuleInterface} from "./dynamic-module";
+import { Type } from './type'
+import { LoggerService, LogLevel } from '../services'
+import { DynamicModuleInterface } from './dynamic-module'
+import { GetOrResolveOptions } from './application-context-options'
 
 export interface ApplicationContextInterface {
+  select<T>(
+    module: Type<T> | DynamicModuleInterface
+  ): ApplicationContextInterface
 
-    select<T>(module: Type<T> | DynamicModuleInterface): ApplicationContextInterface;
+  get<T = any, R = T>(typeOrToken: Type<T> | Function | string | symbol): R
 
-    get<T = any, R = T>(typeOrToken: Type<T> | AbstractInterface<T> | string | symbol,
-                        options?: { strict: boolean }): R;
+  get<T = any, R = T>(
+    typeOrToken: Type<T> | Function | string | symbol,
+    options: { strict?: boolean; each?: undefined | false }
+  ): R
 
-    resolve<T = any, R = T>(
-        typeOrToken: Type<T> | AbstractInterface<T> | string | symbol, contextId?: { id: number }, options?: { strict: boolean }): Promise<R>;
+  get<T = any, R = T>(
+    typeOrToken: Type<T> | Function | string | symbol,
+    options: { strict?: boolean; each: true }
+  ): Array<R>
 
-    registerRequestByContextId<T = any>(request: T, contextId: { id: number }): void;
+  get<T = any, R = T>(
+    typeOrToken: Type<T> | Function | string | symbol,
+    options?: GetOrResolveOptions
+  ): R | Array<R>
 
-    close(): Promise<void>;
+  resolve<T = any, R = T>(
+    typeOrToken: Type<T> | Function | string | symbol
+  ): Promise<R>
 
-    useLogger(logger: LoggerService | LogLevel[] | false): void;
+  resolve<T = any, R = T>(
+    typeOrToken: Type<T> | Function | string | symbol,
+    contextId?: { id: number }
+  ): Promise<R>
 
-    init(): Promise<this>;
+  resolve<T = any, R = T>(
+    typeOrToken: Type<T> | Function | string | symbol,
+    contextId?: { id: number },
+    options?: { strict?: boolean; each?: undefined | false }
+  ): Promise<R>
+
+  resolve<T = any, R = T>(
+    typeOrToken: Type<T> | Function | string | symbol,
+    contextId?: { id: number },
+    options?: { strict?: boolean; each: true }
+  ): Promise<Array<R>>
+
+  resolve<T = any, R = T>(
+    typeOrToken: Type<T> | Function | string | symbol,
+    contextId?: { id: number },
+    options?: GetOrResolveOptions
+  ): Promise<R | Array<R>>
+
+  registerRequestByContextId<T = any>(
+    request: T,
+    contextId: { id: number }
+  ): void
+
+  close(): Promise<void>
+
+  useLogger(logger: LoggerService | LogLevel[] | false): void
+
+  init(): Promise<this>
 }

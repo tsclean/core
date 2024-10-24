@@ -13,3 +13,5 @@ export * from "./server"
 export * from "./services"
 export * from "./utils"
 export * from './upload'
+export * from './inspector'
+export * from './websockets'

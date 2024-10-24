@@ -1,1 +1,1 @@
-export type ContextType = 'http';
+export type ContextType = 'http' | 'ws' | 'rpc' | 'graphql';

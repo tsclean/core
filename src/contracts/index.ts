@@ -37,3 +37,9 @@ export * from "./route-params-factory";
 export * from "./route-path-metadata";
 export * from "./scope-options";
 export * from "./type";
+export * from "./web-socket-adapter";
+export * from "./ws-exception-filter";
+export * from "./injection-token"
+export * from './clean-gateway'
+export * from './ws-response'
+export * from './exclude-route-metadata.interface'

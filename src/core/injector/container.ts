@@ -1,241 +1,263 @@
-import {ApplicationConfig} from '../../app';
+import { ApplicationConfig } from '../../app'
 import {
-    CircularDependencyException,
-    UndefinedForwardRefException,
-    UnknownModuleException
-} from '../../errors';
-import {REQUEST} from '../../router';
-import {ModuleCompiler} from './compiler';
-import {ContextId} from './instance-wrapper';
-import {InternalCoreModule} from './internal-core-module';
-import {InternalProvidersStorage} from './internal-providers-storage';
-import {Module} from './module';
-import {ModuleTokenFactory} from './module-token-factory';
-import {ModulesContainer} from './modules-container';
-import {DynamicModuleInterface, Type} from "../../contracts";
-import {GLOBAL_MODULE_METADATA} from "../../helpers";
-import {InjectableType, ProviderType} from "../../types";
+  CircularDependencyException,
+  UndefinedForwardRefException,
+  UnknownModuleException
+} from '../../errors'
+import { REQUEST } from '../../router'
+import { ModuleCompiler } from './compiler'
+import { ContextId } from './instance-wrapper'
+import { InternalCoreModule } from './internal-core-module'
+import { InternalProvidersStorage } from './internal-providers-storage'
+import { Module } from './module'
+import { ModuleTokenFactory } from './module-token-factory'
+import { ModulesContainer } from './modules-container'
+import { DynamicModuleInterface, Type } from '../../contracts'
+import { EnhancerSubtype, GLOBAL_MODULE_METADATA } from '../../helpers'
+import { InjectableType, ProviderType } from '../../types'
+import { SerializedGraph } from '../../inspector/serialized-graph'
+import { DiscoverableMetaHostCollection } from '../../core/discovery'
 
 export class ContainerIoC {
-    private readonly globalModules = new Set<Module>();
-    private readonly moduleTokenFactory = new ModuleTokenFactory();
-    private readonly moduleCompiler = new ModuleCompiler(this.moduleTokenFactory);
-    private readonly modules = new ModulesContainer();
-    private readonly dynamicModulesMetadata = new Map<string,
-        Partial<DynamicModuleInterface>>();
-    private readonly internalProvidersStorage = new InternalProvidersStorage();
-    private internalCoreModule: Module;
+  private readonly globalModules = new Set<Module>()
+  private readonly moduleTokenFactory = new ModuleTokenFactory()
+  private readonly moduleCompiler = new ModuleCompiler(this.moduleTokenFactory)
+  private readonly modules = new ModulesContainer()
+  private readonly dynamicModulesMetadata = new Map<
+    string,
+    Partial<DynamicModuleInterface>
+  >()
+  private readonly internalProvidersStorage = new InternalProvidersStorage()
+  private readonly _serializedGraph = new SerializedGraph()
+  private internalCoreModule: Module
 
-    constructor(
-        private readonly _applicationConfig: ApplicationConfig = undefined,
-    ) {
+  constructor (
+    private readonly _applicationConfig: ApplicationConfig = undefined
+  ) {}
+
+  get serializedGraph (): SerializedGraph {
+    return this._serializedGraph
+  }
+
+  get applicationConfig (): ApplicationConfig | undefined {
+    return this._applicationConfig
+  }
+
+  public setHttpAdapter (httpAdapter: any) {
+    this.internalProvidersStorage.httpAdapter = httpAdapter
+
+    if (!this.internalProvidersStorage.httpAdapterHost) {
+      return
     }
+    const host = this.internalProvidersStorage.httpAdapterHost
+    host.httpAdapter = httpAdapter
+  }
 
-    get applicationConfig(): ApplicationConfig | undefined {
-        return this._applicationConfig;
+  public getHttpAdapterRef () {
+    return this.internalProvidersStorage.httpAdapter
+  }
+
+  public getHttpAdapterHostRef () {
+    return this.internalProvidersStorage.httpAdapterHost
+  }
+
+  public async addModule (
+    metaType:
+      | Type<any>
+      | DynamicModuleInterface
+      | Promise<DynamicModuleInterface>,
+    scope: Type<any>[]
+  ): Promise<Module | undefined> {
+    if (!metaType) throw new UndefinedForwardRefException(scope)
+
+    const { type, dynamicMetadata, token } = await this.moduleCompiler.compile(
+      metaType
+    )
+    if (this.modules.has(token)) return this.modules.get(token)
+
+    const moduleRef = new Module(type, this)
+    moduleRef.token = token
+    this.modules.set(token, moduleRef)
+
+    await this.addDynamicMetadata(
+      token,
+      dynamicMetadata,
+      [].concat(scope, type)
+    )
+
+    if (this.isGlobalModule(type, dynamicMetadata)) {
+      this.addGlobalModule(moduleRef)
     }
+    return moduleRef
+  }
 
-    public setHttpAdapter(httpAdapter: any) {
-        this.internalProvidersStorage.httpAdapter = httpAdapter;
-
-        if (!this.internalProvidersStorage.httpAdapterHost) {
-            return;
-        }
-        const host = this.internalProvidersStorage.httpAdapterHost;
-        host.httpAdapter = httpAdapter;
+  public async addDynamicMetadata (
+    token: string,
+    dynamicModuleMetadata: Partial<DynamicModuleInterface>,
+    scope: Type<any>[]
+  ) {
+    if (!dynamicModuleMetadata) {
+      return
     }
+    this.dynamicModulesMetadata.set(token, dynamicModuleMetadata)
 
-    public getHttpAdapterRef() {
-        return this.internalProvidersStorage.httpAdapter;
+    const { imports } = dynamicModuleMetadata
+    await this.addDynamicModules(imports, scope)
+  }
+
+  public async addDynamicModules (modules: any[], scope: Type<any>[]) {
+    if (!modules) {
+      return
     }
+    await Promise.all(modules.map(module => this.addModule(module, scope)))
+  }
 
-    public getHttpAdapterHostRef() {
-        return this.internalProvidersStorage.httpAdapterHost;
+  public isGlobalModule (
+    metatype: Type<any>,
+    dynamicMetadata?: Partial<DynamicModuleInterface>
+  ): boolean {
+    if (dynamicMetadata && dynamicMetadata.global) {
+      return true
     }
+    return !!Reflect.getMetadata(GLOBAL_MODULE_METADATA, metatype)
+  }
 
-    public async addModule(
-        metaType: Type<any> | DynamicModuleInterface | Promise<DynamicModuleInterface>,
-        scope: Type<any>[],
-    ): Promise<Module | undefined> {
-        if (!metaType) throw new UndefinedForwardRefException(scope);
+  public addGlobalModule (module: Module) {
+    this.globalModules.add(module)
+  }
 
-        const {type, dynamicMetadata, token} = await this.moduleCompiler.compile(metaType);
-        if (this.modules.has(token)) return this.modules.get(token);
+  public getModules (): ModulesContainer {
+    return this.modules
+  }
 
-        const moduleRef = new Module(type, this);
-        moduleRef.token = token;
-        this.modules.set(token, moduleRef);
+  public getModuleCompiler (): ModuleCompiler {
+    return this.moduleCompiler
+  }
 
-        await this.addDynamicMetadata(
-            token,
-            dynamicMetadata,
-            [].concat(scope, type),
-        );
+  public getModuleByKey (moduleKey: string): Module {
+    return this.modules.get(moduleKey)
+  }
 
-        if (this.isGlobalModule(type, dynamicMetadata)) {
-            this.addGlobalModule(moduleRef);
-        }
-        return moduleRef;
+  public getInternalCoreModuleRef (): Module | undefined {
+    return this.internalCoreModule
+  }
+
+  public async addImport (
+    relatedModule: Type<any> | DynamicModuleInterface,
+    token: string
+  ) {
+    if (!this.modules.has(token)) {
+      return
     }
+    const moduleRef = this.modules.get(token)
+    const { token: relatedModuleToken } = await this.moduleCompiler.compile(
+      relatedModule
+    )
+    const related = this.modules.get(relatedModuleToken)
+    moduleRef.addRelatedModule(related)
+  }
 
-    public async addDynamicMetadata(
-        token: string,
-        dynamicModuleMetadata: Partial<DynamicModuleInterface>,
-        scope: Type<any>[],
-    ) {
-        if (!dynamicModuleMetadata) {
-            return;
-        }
-        this.dynamicModulesMetadata.set(token, dynamicModuleMetadata);
-
-        const {imports} = dynamicModuleMetadata;
-        await this.addDynamicModules(imports, scope);
+  public addProvider (
+    provider: ProviderType,
+    token: string,
+    enhancerSubtype?: EnhancerSubtype,
+  ): string | symbol | Function {
+    const moduleRef = this.modules.get(token);
+    if (!provider) {
+      throw new CircularDependencyException(moduleRef?.metaType.name);
     }
-
-    public async addDynamicModules(modules: any[], scope: Type<any>[]) {
-        if (!modules) {
-            return;
-        }
-        await Promise.all(modules.map(module => this.addModule(module, scope)));
+    if (!moduleRef) {
+      throw new UnknownModuleException();
     }
+    const providerKey = moduleRef.addProvider(provider, enhancerSubtype);
+    const providerRef = moduleRef.getProviderByKey(providerKey);
 
-    public isGlobalModule(
-        metatype: Type<any>,
-        dynamicMetadata?: Partial<DynamicModuleInterface>,
-    ): boolean {
-        if (dynamicMetadata && dynamicMetadata.global) {
-            return true;
-        }
-        return !!Reflect.getMetadata(GLOBAL_MODULE_METADATA, metatype);
-    }
+    DiscoverableMetaHostCollection.inspectProvider(this.modules, providerRef);
 
-    public addGlobalModule(module: Module) {
-        this.globalModules.add(module);
-    }
+    return providerKey as Function;
+  }
 
-    public getModules(): ModulesContainer {
-        return this.modules;
+  public addInjectable (
+    injectable: ProviderType,
+    token: string,
+    enhancerSubtype: EnhancerSubtype,
+    host?: Type<InjectableType>
+  ) {
+    if (!this.modules.has(token)) {
+      throw new UnknownModuleException()
     }
+    const moduleRef = this.modules.get(token)
+    return moduleRef.addInjectable(injectable, enhancerSubtype, host);
+  }
 
-    public getModuleCompiler(): ModuleCompiler {
-        return this.moduleCompiler;
+  public addExportedProvider (provider: Type<any>, token: string) {
+    if (!this.modules.has(token)) {
+      throw new UnknownModuleException()
     }
+    const moduleRef = this.modules.get(token)
+    moduleRef.addExportedProvider(provider)
+  }
 
-    public getModuleByKey(moduleKey: string): Module {
-        return this.modules.get(moduleKey);
+  public addController (controller: Type<any>, token: string) {
+    if (!this.modules.has(token)) {
+      throw new UnknownModuleException()
     }
+    const moduleRef = this.modules.get(token)
+    moduleRef.addController(controller)
+  }
 
-    public getInternalCoreModuleRef(): Module | undefined {
-        return this.internalCoreModule;
-    }
+  public clear () {
+    this.modules.clear()
+  }
 
-    public async addImport(
-        relatedModule: Type<any> | DynamicModuleInterface,
-        token: string,
-    ) {
-        if (!this.modules.has(token)) {
-            return;
-        }
-        const moduleRef = this.modules.get(token);
-        const {token: relatedModuleToken} = await this.moduleCompiler.compile(
-            relatedModule,
-        );
-        const related = this.modules.get(relatedModuleToken);
-        moduleRef.addRelatedModule(related);
-    }
+  public replace (toReplace: any, options: any & { scope: any[] | null }) {
+    this.modules.forEach(moduleRef => moduleRef.replace(toReplace, options))
+  }
 
-    public addProvider(
-        provider: ProviderType,
-        token: string,
-    ): string | symbol | Function {
-        if (!provider) {
-            throw new CircularDependencyException();
-        }
-        if (!this.modules.has(token)) {
-            throw new UnknownModuleException();
-        }
-        const moduleRef = this.modules.get(token);
-        return moduleRef.addProvider(provider);
-    }
+  public bindGlobalScope () {
+    this.modules.forEach(moduleRef => this.bindGlobalsToImports(moduleRef))
+  }
 
-    public addInjectable(
-        injectable: ProviderType,
-        token: string,
-        host?: Type<InjectableType>,
-    ) {
-        if (!this.modules.has(token)) {
-            throw new UnknownModuleException();
-        }
-        const moduleRef = this.modules.get(token);
-        moduleRef.addInjectable(injectable, host);
-    }
+  public bindGlobalsToImports (moduleRef: Module) {
+    this.globalModules.forEach(globalModule =>
+      this.bindGlobalModuleToModule(moduleRef, globalModule)
+    )
+  }
 
-    public addExportedProvider(provider: Type<any>, token: string) {
-        if (!this.modules.has(token)) {
-            throw new UnknownModuleException();
-        }
-        const moduleRef = this.modules.get(token);
-        moduleRef.addExportedProvider(provider);
+  public bindGlobalModuleToModule (target: Module, globalModule: Module) {
+    if (target === globalModule || target === this.internalCoreModule) {
+      return
     }
+    target.addRelatedModule(globalModule)
+  }
 
-    public addController(controller: Type<any>, token: string) {
-        if (!this.modules.has(token)) {
-            throw new UnknownModuleException();
-        }
-        const moduleRef = this.modules.get(token);
-        moduleRef.addController(controller);
-    }
+  public getDynamicMetadataByToken(token: string): Partial<DynamicModuleInterface>;
+  public getDynamicMetadataByToken<
+    K extends Exclude<keyof DynamicModuleInterface, 'global' | 'module'>,
+  >(token: string, metadataKey: K): DynamicModuleInterface[K];
 
-    public clear() {
-        this.modules.clear();
-    }
+  public getDynamicMetadataByToken (
+    token: string,
+    metadataKey?: Exclude<keyof DynamicModuleInterface, 'global' | 'module'>,
+  ) {
+    const metadata = this.dynamicModulesMetadata.get(token);
+    return metadataKey ? (metadata?.[metadataKey] ?? []) : metadata;
+  }
 
-    public replace(toReplace: any, options: any & { scope: any[] | null }) {
-        this.modules.forEach(moduleRef => moduleRef.replace(toReplace, options));
-    }
+  public registerCoreModuleRef (moduleRef: Module) {
+    this.internalCoreModule = moduleRef
+    this.modules[InternalCoreModule.name] = moduleRef
+  }
 
-    public bindGlobalScope() {
-        this.modules.forEach(moduleRef => this.bindGlobalsToImports(moduleRef));
-    }
+  public getModuleTokenFactory (): ModuleTokenFactory {
+    return this.moduleTokenFactory
+  }
 
-    public bindGlobalsToImports(moduleRef: Module) {
-        this.globalModules.forEach(globalModule =>
-            this.bindGlobalModuleToModule(moduleRef, globalModule),
-        );
-    }
-
-    public bindGlobalModuleToModule(target: Module, globalModule: Module) {
-        if (target === globalModule || target === this.internalCoreModule) {
-            return;
-        }
-        target.addRelatedModule(globalModule);
-    }
-
-    public getDynamicMetadataByToken(
-        token: string,
-        metadataKey: keyof DynamicModuleInterface,
-    ) {
-        const metadata = this.dynamicModulesMetadata.get(token);
-        if (metadata && metadata[metadataKey]) {
-            return metadata[metadataKey] as any[];
-        }
-        return [];
-    }
-
-    public registerCoreModuleRef(moduleRef: Module) {
-        this.internalCoreModule = moduleRef;
-        this.modules[InternalCoreModule.name] = moduleRef;
-    }
-
-    public getModuleTokenFactory(): ModuleTokenFactory {
-        return this.moduleTokenFactory;
-    }
-
-    public registerRequestProvider<T = any>(request: T, contextId: ContextId) {
-        const wrapper = this.internalCoreModule.getProviderByKey(REQUEST);
-        wrapper.setInstanceByContextId(contextId, {
-            instance: request,
-            isResolved: true,
-        });
-    }
+  public registerRequestProvider<T = any> (request: T, contextId: ContextId) {
+    const wrapper = this.internalCoreModule.getProviderByKey(REQUEST)
+    wrapper.setInstanceByContextId(contextId, {
+      instance: request,
+      isResolved: true
+    })
+  }
 }

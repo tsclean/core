@@ -1,123 +1,168 @@
-import {InvalidClassScopeException} from '../../errors/exceptions/invalid-class-scope';
-import {UnknownElementException} from '../../errors/exceptions/unknown-element';
-import {getClassScope} from '../../helpers/get-class-scope';
-import {ContainerIoC} from './container';
-import {Injector} from './injector';
-import {InstanceLinksHost} from './instance-links-host';
-import {ContextId, InstanceWrapper} from './instance-wrapper';
-import {Module} from './module';
-import {Scope, Type} from "../../contracts";
+import { getClassScope } from '../../helpers/get-class-scope'
+import { ContainerIoC } from './container'
+import { Injector } from './injector'
+import { InstanceLinksHost } from './instance-links-host'
+import { ContextId, InstanceWrapper } from './instance-wrapper'
+import { Module } from './module'
+import { Scope, Type } from '../../contracts'
+import { AbstractInstanceResolver } from './abstract-instance-resolver'
+import { IntrospectionResult } from '../../contracts/introspection-result'
+import { isDurable } from '../../helpers'
 
-export abstract class ModuleRef {
-    private readonly injector = new Injector();
-    private _instanceLinksHost: InstanceLinksHost;
+export interface ModuleRefGetOrResolveOpts {
+  strict?: boolean
+  each?: boolean
+}
 
-    private get instanceLinksHost() {
-        if (!this._instanceLinksHost) {
-            this._instanceLinksHost = new InstanceLinksHost(this.container);
+export abstract class ModuleRef extends AbstractInstanceResolver {
+  protected readonly injector = new Injector()
+  private _instanceLinksHost: InstanceLinksHost
+
+  protected get instanceLinksHost () {
+    if (!this._instanceLinksHost) {
+      this._instanceLinksHost = new InstanceLinksHost(this.container)
+    }
+    return this._instanceLinksHost
+  }
+
+  constructor (protected readonly container: ContainerIoC) {
+    super()
+  }
+
+  abstract get<TInput = any, TResult = TInput>(
+    typeOrToken: Type<TInput> | string | symbol,
+    options?: { strict: boolean }
+  ): TResult
+
+  abstract get<TInput = any, TResult = TInput>(
+    typeOrToken: Type<TInput> | Function | string | symbol,
+    options: {
+      /**
+       * If enabled, lookup will only be performed in the host module.
+       * @default true
+       */
+      strict?: boolean
+      /** This indicates that only the first instance registered will be returned. */
+      each?: undefined | false
+    }
+  ): TResult
+
+  abstract get<TInput = any, TResult = TInput>(
+    typeOrToken: Type<TInput> | Function | string | symbol,
+    options: {
+      /**
+       * If enabled, lookup will only be performed in the host module.
+       * @default true
+       */
+      strict?: boolean
+      /** This indicates that a list of instances will be returned. */
+      each: true
+    }
+  ): Array<TResult>
+
+  abstract get<TInput = any, TResult = TInput>(
+    typeOrToken: Type<TInput> | Function | string | symbol,
+    options?: ModuleRefGetOrResolveOpts
+  ): TResult | Array<TResult>
+
+  abstract resolve<TInput = any, TResult = TInput>(
+    typeOrToken: Type<TInput> | Function | string | symbol
+  ): Promise<TResult>
+  /**
+   * Resolves transient or request-scoped instance of either injectable or controller, otherwise, throws exception.
+   * @returns {Array<TResult>}
+   */
+  abstract resolve<TInput = any, TResult = TInput>(
+    typeOrToken: Type<TInput> | Function | string | symbol,
+    contextId?: { id: number }
+  ): Promise<TResult>
+  /**
+   * Resolves transient or request-scoped instance of either injectable or controller, otherwise, throws exception.
+   * @returns {Array<TResult>}
+   */
+  abstract resolve<TInput = any, TResult = TInput>(
+    typeOrToken: Type<TInput> | Function | string | symbol,
+    contextId?: { id: number },
+    options?: { strict?: boolean; each?: undefined | false }
+  ): Promise<TResult>
+  /**
+   * Resolves transient or request-scoped instances of either injectables or controllers, otherwise, throws exception.
+   * @returns {Array<TResult>}
+   */
+  abstract resolve<TInput = any, TResult = TInput>(
+    typeOrToken: Type<TInput> | Function | string | symbol,
+    contextId?: { id: number },
+    options?: { strict?: boolean; each: true }
+  ): Promise<Array<TResult>>
+  /**
+   * Resolves transient or request-scoped instance (or a list of instances) of either injectable or controller, otherwise, throws exception.
+   * @returns {Promise<TResult | Array<TResult>>}
+   */
+  abstract resolve<TInput = any, TResult = TInput>(
+    typeOrToken: Type<TInput> | Function | string | symbol,
+    contextId?: { id: number },
+    options?: ModuleRefGetOrResolveOpts
+  ): Promise<TResult | Array<TResult>>
+
+  public abstract create<T = any>(
+    type: Type<T>,
+    contextId?: ContextId
+  ): Promise<T>
+
+  public introspect<T = any> (
+    token: Type<T> | string | symbol
+  ): IntrospectionResult {
+    const { wrapperRef } = this.instanceLinksHost.get(token)
+
+    let scope = Scope.DEFAULT
+    if (!wrapperRef.isDependencyTreeStatic()) {
+      scope = Scope.REQUEST
+    } else if (wrapperRef.isTransient) {
+      scope = Scope.TRANSIENT
+    }
+    return { scope }
+  }
+
+  public registerRequestByContextId<T = any> (request: T, contextId: ContextId) {
+    this.container.registerRequestProvider(request, contextId)
+  }
+
+  protected async instantiateClass<T = any> (
+    type: Type<T>,
+    moduleRef: Module,
+    contextId?: ContextId
+  ): Promise<T> {
+    const wrapper = new InstanceWrapper({
+      name: type && type.name,
+      metaType: type,
+      isResolved: false,
+      scope: getClassScope(type),
+      durable: isDurable(type),
+      host: moduleRef
+    })
+    return new Promise<T>(async (resolve, reject) => {
+      try {
+        const callback = async (instances: any[]) => {
+          const properties = await this.injector.resolveProperties(
+            wrapper,
+            moduleRef,
+            undefined,
+            contextId
+          )
+          const instance = new type(...instances)
+          this.injector.applyProperties(instance, properties)
+          resolve(instance)
         }
-        return this._instanceLinksHost;
-    }
-
-    constructor(protected readonly container: ContainerIoC) {
-    }
-
-    public abstract get<TInput = any, TResult = TInput>(
-        typeOrToken: Type<TInput> | string | symbol,
-        options?: { strict: boolean },
-    ): TResult;
-
-    public abstract resolve<TInput = any, TResult = TInput>(
-        typeOrToken: Type<TInput> | string | symbol,
-        contextId?: ContextId,
-        options?: { strict: boolean },
-    ): Promise<TResult>;
-
-    public abstract create<T = any>(type: Type<T>): Promise<T>;
-
-    public registerRequestByContextId<T = any>(request: T, contextId: ContextId) {
-        this.container.registerRequestProvider(request, contextId);
-    }
-
-    protected find<TInput = any, TResult = TInput>(
-        typeOrToken: Type<TInput> | string | symbol,
-        contextModule?: Module,
-    ): TResult {
-        const moduleId = contextModule && contextModule.id;
-        const {wrapperRef} = this.instanceLinksHost.get<TResult>(
-            typeOrToken,
-            moduleId,
-        );
-        if (
-            wrapperRef.scope === Scope.REQUEST ||
-            wrapperRef.scope === Scope.TRANSIENT
-        ) {
-            throw new InvalidClassScopeException(typeOrToken);
-        }
-        return wrapperRef.instance;
-    }
-
-    protected async resolvePerContext<TInput = any, TResult = TInput>(
-        typeOrToken: Type<TInput> | string | symbol,
-        contextModule: Module,
-        contextId: ContextId,
-        options?: { strict: boolean },
-    ): Promise<TResult> {
-        const isStrictModeEnabled = options && options.strict;
-        const instanceLink = isStrictModeEnabled
-            ? this.instanceLinksHost.get(typeOrToken, contextModule.id)
-            : this.instanceLinksHost.get(typeOrToken);
-
-        const {wrapperRef, collection} = instanceLink;
-        if (wrapperRef.isDependencyTreeStatic() && !wrapperRef.isTransient) {
-            return this.get(typeOrToken, options);
-        }
-
-        const ctorHost = wrapperRef.instance || {constructor: typeOrToken};
-        const instance = await this.injector.loadPerContext(
-            ctorHost,
-            wrapperRef.host,
-            collection,
-            contextId,
-            wrapperRef,
-        );
-        if (!instance) {
-            throw new UnknownElementException();
-        }
-        return instance;
-    }
-
-    protected async instantiateClass<T = any>(
-        type: Type<T>,
-        moduleRef: Module,
-    ): Promise<T> {
-        const wrapper = new InstanceWrapper({
-            name: type && type.name,
-            metaType: type,
-            isResolved: false,
-            scope: getClassScope(type),
-            host: moduleRef,
-        });
-        return new Promise<T>(async (resolve, reject) => {
-            try {
-                const callback = async (instances: any[]) => {
-                    const properties = await this.injector.resolveProperties(
-                        wrapper,
-                        moduleRef,
-                    );
-                    const instance = new type(...instances);
-                    this.injector.applyProperties(instance, properties);
-                    resolve(instance);
-                };
-                await this.injector.resolveConstructorParams<T>(
-                    wrapper,
-                    moduleRef,
-                    undefined,
-                    callback,
-                );
-            } catch (err) {
-                reject(err);
-            }
-        });
-    }
+        await this.injector.resolveConstructorParams<T>(
+          wrapper,
+          moduleRef,
+          undefined,
+          callback,
+          contextId
+        )
+      } catch (err) {
+        reject(err)
+      }
+    })
+  }
 }

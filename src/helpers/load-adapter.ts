@@ -7,6 +7,7 @@ const logger = new Logger('PackageLoader');
 
 export function loadAdapter(
   defaultPlatform: string, transport: string, loaderFn?: Function) {
+    console.log("load Adapter", defaultPlatform, transport, loaderFn);
   try {
     return loaderFn ? loaderFn() : require(defaultPlatform);
   } catch (e) {
