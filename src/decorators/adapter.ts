@@ -1,9 +1,15 @@
 import {isUndefined} from "../utils";
-import {PROPERTY_DEPS_METADATA, SELF_DECLARED_DEPS_METADATA} from "../helpers";
+import {PARAMTYPES_METADATA, PROPERTY_DEPS_METADATA, SELF_DECLARED_DEPS_METADATA} from "../helpers";
 
-export function Adapter<T = any>(token?: T) {
+export function Adapter<T = any>(token?: T): PropertyDecorator & ParameterDecorator {
+    const injectCallHasArguments = arguments.length > 0;
+
     return (target: object, key: string | symbol, index?: number) => {
-        const type = token || Reflect.getMetadata('design:type', target, key);
+        let type = token || Reflect.getMetadata('design:type', target, key);
+
+        if (!type && !injectCallHasArguments) {
+            type = Reflect.getMetadata(PARAMTYPES_METADATA, target, key)?.[index];
+        }
 
         if (!isUndefined(index)) {
             let dependencies =
