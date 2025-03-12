@@ -6,6 +6,7 @@ import {
   GlobalPrefixOptionsInterface,
   InterceptorInterface,
 } from "../contracts";
+import { CanActivate } from '../contracts/can-activate';
 
 export class ApplicationConfig {
   private globalPrefix = '';
@@ -13,12 +14,14 @@ export class ApplicationConfig {
   private globalHandlers: Array<HandlerTransform> = [];
   private globalFilters: Array<ExceptionFilterInterface> = [];
   private globalInterceptors: Array<InterceptorInterface> = [];
+  private globalGuards: Array<CanActivate> = [];
   private globalAccessResource: Array<AccessResourceInterface> = [];
   private readonly globalRequestHandlers: InstanceWrapper<HandlerTransform>[] = [];
   private readonly globalRequestFilters: InstanceWrapper<ExceptionFilterInterface>[] = [];
   private readonly globalRequestInterceptors: InstanceWrapper<InterceptorInterface>[] = [];
+  private readonly globalRequestGuards: InstanceWrapper<CanActivate>[] = [];
   private readonly globalRequestAccessResource: InstanceWrapper<AccessResourceInterface>[] = [];
-
+ 
   constructor(private ioAdapter: WebSocketAdapter | null = null) {}
 
   public setGlobalPrefix(prefix: string) {
@@ -81,6 +84,19 @@ export class ApplicationConfig {
     this.globalInterceptors = this.globalInterceptors.concat(interceptors);
   }
 
+  public getGlobalGuards(): CanActivate[] {
+    return this.globalGuards;
+  }
+
+  public addGlobalGuard(guard: CanActivate) {
+    this.globalGuards.push(guard);
+  }
+
+  public useGlobalGuards(...guards: CanActivate[]) {
+    this.globalGuards = this.globalGuards.concat(guards);
+  }
+
+
   public getGlobalAccessResources(): AccessResourceInterface[] {
     return this.globalAccessResource;
   }
@@ -117,7 +133,15 @@ export class ApplicationConfig {
     return this.globalRequestFilters;
   }
 
-  public addGlobalRequestGuard(wrapper: InstanceWrapper<AccessResourceInterface>) {
+  public addGlobalRequestGuard(wrapper: InstanceWrapper<CanActivate>) {
+    this.globalRequestGuards.push(wrapper);
+  }
+
+  public getGlobalRequestGuards(): InstanceWrapper<CanActivate>[] {
+    return this.globalRequestGuards;
+  }
+
+  public addGlobalRequestAccessResource(wrapper: InstanceWrapper<AccessResourceInterface>) {
     this.globalRequestAccessResource.push(wrapper);
   }
 

@@ -31,7 +31,7 @@ export const RESPONSE_PASSTHROUGH_METADATA = '__responsePassthrough__';
 export const ROUTES = Symbol('ROUTES');
 
 export const ENHANCER_KEY_TO_SUBTYPE_MAP = {
-  [GUARDS_METADATA]: 'resource',
+  [GUARDS_METADATA]: 'guard',
   [INTERCEPTORS_METADATA]: 'interceptor',
   [RESOURCES_METADATA]: 'resource',
   [EXCEPTION_FILTERS_METADATA]: 'filter',

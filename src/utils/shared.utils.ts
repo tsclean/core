@@ -1,8 +1,8 @@
-export function flatten<T extends Array<unknown> = any> (
-  arr: T
-): T extends Array<infer R> ? R : never {
-  const flat = [].concat(...arr)
-  return flat.some(Array.isArray) ? flatten(flat) : flat
+export function flatten<T>(arr: T[]): T extends (infer R)[] ? R[] : T[] {
+  const flat: unknown[] = [].concat(...arr); // Usamos unknown[] en lugar de any[]
+  return flat.some(Array.isArray)
+    ? (flatten(flat as any[]) as T extends (infer R)[] ? R[] : T[])
+    : (flat as T extends (infer R)[] ? R[] : T[]);
 }
 
 export const isUndefined = (obj: any): obj is undefined =>
@@ -26,7 +26,7 @@ export const isPlainObject = (fn: any): fn is object => {
     typeof ctor === 'function' &&
     ctor instanceof ctor &&
     Function.prototype.toString.call(ctor) ===
-      Function.prototype.toString.call(Object)
+    Function.prototype.toString.call(Object)
   )
 }
 
@@ -47,7 +47,9 @@ export const normalizePath = (path?: string): string =>
       : '/' + path.replace(/\/+$/, '')
     : '/'
 
-export const isFunction = (fn: any): boolean => typeof fn === 'function'
+export const isFunction = (val: any): val is Function =>
+  typeof val === 'function';
+
 export const isString = (fn: any): fn is string => typeof fn === 'string'
 export const isConstructor = (fn: any): boolean => fn === 'constructor'
 export const isNil = (obj: any): obj is null | undefined =>
