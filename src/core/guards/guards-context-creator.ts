@@ -5,9 +5,9 @@ import { ContextCreator, GUARDS_METADATA } from '../../helpers';
 import { ContainerIoC } from '../../core/injector';
 import { ApplicationConfig } from '../../app';
 import { ControllerType } from '../../types';
-import { CanActivate } from '../../contracts/can-activate.interface';
 import { isEmpty, isFunction } from '../../utils';
 import { Type } from '../../contracts';
+import { CanActivate } from '../../contracts/can-activate';
 
 export class GuardsContextCreator extends ContextCreator {
   private moduleContext: string;

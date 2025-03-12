@@ -2,7 +2,7 @@ import { lastValueFrom, Observable } from "rxjs";
 import { ExecutionContextHost } from "../../helpers/execution-context-host";
 import { ContextType, ControllerType } from "../../types";
 import { isEmpty } from "../../utils/shared.utils";
-import { CanActivate } from "../../contracts/can-activate.interface";
+import { CanActivate } from "../../contracts/can-activate";
 
 export class GuardsConsumer {
   public async tryActivate<TContext extends string = ContextType>(
