@@ -5,6 +5,7 @@ import { RouterExplorer } from '../router/router-explorer';
 import {RouteInfo, Type} from "../contracts";
 import {addLeadingSlash, isString, isUndefined} from "../utils/shared.utils";
 import {MODULE_PATH, PATH_METADATA} from "../helpers/constants";
+import { RequestMethod } from '../enums';
 
 export class RoutesMapper {
   private readonly routerExplorer: RouterExplorer;
@@ -17,11 +18,10 @@ export class RoutesMapper {
     route: Type<any> | RouteInfo | string,
   ): RouteInfo[] {
     if (isString(route)) {
-      const defaultRequestMethod = -1;
       return [
         {
           path: addLeadingSlash(route),
-          method: defaultRequestMethod,
+          method: RequestMethod.GET,
         },
       ];
     }

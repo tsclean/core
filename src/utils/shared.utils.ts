@@ -1,6 +1,9 @@
-export function flatten<T extends Array<unknown> = any>(arr: T): T extends Array<infer R> ? R : never {
-  const flat = [].concat(...arr);
-  return flat.some(Array.isArray) ? flatten(flat) : flat;
+type Flatten<T> = T extends Array<infer R> ? Flatten<R> : T;
+
+export function flatten<T>(arr: T[]): Flatten<T>[] {
+  return arr.reduce((acc: Flatten<T>[], item) => {
+    return acc.concat(Array.isArray(item) ? flatten(item) : [item]);
+  }, []);
 }
 
 export const isUndefined = (obj: any): obj is undefined => typeof obj === 'undefined';
